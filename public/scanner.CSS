@@ -1,0 +1,640 @@
+/* =============================================================
+   style.css  —  AttendX Attendance Scanner
+   Organised into clearly labelled sections so you can jump
+   straight to the part you want to edit.
+   ============================================================= */
+
+
+/* -------------------------------------------------------------
+   1. CSS VARIABLES (design tokens)
+      Change these to restyle the whole app at once.
+------------------------------------------------------------- */
+:root {
+  --bg:       #f5f4f0;  /* page background */
+  --surface:  #ffffff;  /* card / table background */
+  --border:   #e2e0d8;  /* subtle divider colour */
+  --accent:   #1a1a1a;  /* near-black used for the scanner card */
+  --green:    #1db954;  /* primary action colour */
+  --red:      #e53935;  /* absent / stop colour */
+  --muted:    #888880;  /* secondary text */
+  --text:     #1a1a1a;  /* body text */
+  --radius:   14px;     /* standard border-radius */
+}
+
+
+/* -------------------------------------------------------------
+   2. RESET & BASE
+      Box-sizing reset and base font/colour on html & body.
+------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  overflow-x: hidden;
+}
+
+
+/* -------------------------------------------------------------
+   3. DYNAMIC BACKGROUND
+      Three blurred colour orbs that drift slowly using CSS
+      animations, a faint scrolling dot grid, and a noise grain
+      overlay. The whole layer sits fixed behind everything else.
+------------------------------------------------------------- */
+
+/* Container that covers the full viewport */
+.bg-canvas {
+  position: fixed;
+  inset: 0;           /* shorthand for top/right/bottom/left: 0 */
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none; /* clicks pass straight through */
+}
+
+/* Shared styles for all three orbs */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.5;
+}
+
+/* Orb 1 — green, top-left */
+.orb-1 {
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, #b8f0d0 0%, transparent 70%);
+  top: -120px;
+  left: -100px;
+  animation: drift1 16s ease-in-out infinite alternate;
+}
+
+/* Orb 2 — blue, bottom-right */
+.orb-2 {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, #cce4ff 0%, transparent 70%);
+  bottom: 60px;
+  right: -80px;
+  animation: drift2 20s ease-in-out infinite alternate;
+}
+
+/* Orb 3 — peach, centre-right */
+.orb-3 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, #fde0cc 0%, transparent 70%);
+  top: 42%;
+  left: 52%;
+  animation: drift3 24s ease-in-out infinite alternate;
+}
+
+/* Each orb drifts to a slightly different position and scale */
+@keyframes drift1 {
+  from { transform: translate(0, 0)    scale(1);    }
+  to   { transform: translate(70px, 90px)  scale(1.12); }
+}
+@keyframes drift2 {
+  from { transform: translate(0, 0)    scale(1);    }
+  to   { transform: translate(-55px, -65px) scale(1.08); }
+}
+@keyframes drift3 {
+  from { transform: translate(0, 0)    scale(1);   }
+  to   { transform: translate(-45px, 55px) scale(0.9); }
+}
+
+/* Faint dot grid that scrolls diagonally */
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+  background-size: 52px 52px;
+  animation: gridShift 28s linear infinite;
+}
+@keyframes gridShift {
+  from { background-position: 0 0; }
+  to   { background-position: 52px 52px; }
+}
+
+/* Nearly invisible noise texture for depth */
+.bg-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.022;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+
+/* -------------------------------------------------------------
+   4. APP WRAPPER
+      Centred column, max 420 px wide. z-index 1 so it sits
+      above the background layer.
+------------------------------------------------------------- */
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 28px 18px 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+
+/* -------------------------------------------------------------
+   5. HEADER
+      Logo + date chip in a flex row.
+------------------------------------------------------------- */
+header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.logo span {
+  color: var(--green); /* the "X" in AttendX */
+}
+
+.date-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  background: var(--border);
+  padding: 4px 10px;
+  border-radius: 50px;
+}
+
+
+#logout-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--red);
+  background: rgba(229, 57, 53, 0.08);
+  border: 1px solid rgba(229, 57, 53, 0.25);
+  padding: 4px 12px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+#logout-btn:hover {
+  background: rgba(229, 57, 53, 0.15);
+}
+.scanner-card {
+  background: var(--accent);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Top row: "QR Scanner" label + Idle/Live status */
+.scanner-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scanner-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* Status indicator (Idle / Live) */
+.cam-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* The small coloured dot next to the status text */
+.cam-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: background 0.3s;
+}
+/* Added by JS when the camera is running */
+.cam-dot.live {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: blink 1.4s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+
+/* -------------------------------------------------------------
+   7. VIEWFINDER
+      Square box that shows the camera feed plus decorative
+      overlay elements (grid, corners, scan line, hint text).
+------------------------------------------------------------- */
+.viewfinder {
+  aspect-ratio: 1;       /* always a perfect square */
+  width: 100%;
+  background: #0c0c0c;
+  border-radius: 14px;
+  position: relative;    /* children are positioned inside this */
+  overflow: hidden;
+}
+
+/* Faint dot grid inside the viewfinder */
+.vf-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Live camera video element — hidden (opacity 0) until camera starts */
+#cameraFeed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+/* JS adds this class to fade the video in */
+#cameraFeed.active {
+  opacity: 1;
+}
+
+/* Corner bracket — base styles shared by all four corners */
+.vf-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: var(--green);
+  border-style: solid;
+  border-width: 0; /* individual sides set below */
+}
+/* Top-left */
+.vf-corner.tl {
+  top: 18px; left: 18px;
+  border-top-width: 2.5px;
+  border-left-width: 2.5px;
+  border-radius: 3px 0 0 0;
+}
+/* Top-right */
+.vf-corner.tr {
+  top: 18px; right: 18px;
+  border-top-width: 2.5px;
+  border-right-width: 2.5px;
+  border-radius: 0 3px 0 0;
+}
+/* Bottom-left */
+.vf-corner.bl {
+  bottom: 18px; left: 18px;
+  border-bottom-width: 2.5px;
+  border-left-width: 2.5px;
+  border-radius: 0 0 0 3px;
+}
+/* Bottom-right */
+.vf-corner.br {
+  bottom: 18px; right: 18px;
+  border-bottom-width: 2.5px;
+  border-right-width: 2.5px;
+  border-radius: 0 0 3px 0;
+}
+
+/* Animated green scan line that bounces top to bottom */
+.vf-line {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--green) 30%,
+    var(--green) 70%,
+    transparent
+  );
+  top: 18px;
+  animation: scan 2.2s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(29, 185, 84, 0.55);
+}
+@keyframes scan {
+  0%   { top: 18px; }
+  50%  { top: calc(100% - 18px); }
+  100% { top: 18px; }
+}
+
+/* Idle placeholder shown before the camera starts */
+.vf-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.18);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  text-align: center;
+  pointer-events: none;
+}
+.vf-hint svg {
+  opacity: 0.22;
+}
+
+/* Green flash overlay — JS briefly adds class "on" after a successful scan */
+.vf-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(29, 185, 84, 0.18);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  border-radius: 14px;
+}
+.vf-flash.on {
+  opacity: 1;
+}
+
+
+/* -------------------------------------------------------------
+   8. CAMERA BUTTONS (Start / Stop)
+------------------------------------------------------------- */
+
+/* Flex row so the two buttons sit side by side */
+.btn-row {
+  display: flex;
+  gap: 10px;
+}
+
+/* START CAMERA button — takes up all remaining space */
+.scan-btn {
+  flex: 1;
+  height: 52px;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.scan-btn:active {
+  opacity: 0.85;
+  transform: scale(0.98);
+}
+
+/* STOP button — hidden by default, shown by JS when camera is live */
+.stop-btn {
+  display: none; /* JS adds class "visible" to show it */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 20px;
+  background: rgba(229, 57, 53, 0.15);
+  color: #ff6b6b;
+  border: 1.5px solid rgba(229, 57, 53, 0.35);
+  border-radius: 12px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+.stop-btn.visible {
+  display: flex;
+}
+.stop-btn:active {
+  opacity: 0.8;
+}
+
+
+/* -------------------------------------------------------------
+   9. ATTENDANCE TABLE SECTION
+      Section header (title + download button) and the table.
+------------------------------------------------------------- */
+
+/* Row with title on the left and download button on the right */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* Download Excel button */
+.download-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  transition: opacity 0.15s;
+}
+.download-btn:active {
+  opacity: 0.8;
+}
+
+/* Table wrapper card */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Table header row */
+thead tr {
+  background: #f0efe9;
+}
+th {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Table body cells */
+td {
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tr:last-child td {
+  border-bottom: none;
+}
+tbody tr {
+  transition: background 0.1s;
+}
+tbody tr:hover {
+  background: #fafaf8;
+}
+
+/* Editable student name cell */
+.name-cell {
+  outline: none;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: background 0.15s;
+  min-width: 70px;
+  display: inline-block;
+}
+.name-cell:focus {
+  background: #eeede8;
+}
+
+/* Present / Absent toggle pill */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.67rem;
+  font-weight: 500;
+  border: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.status-pill.present {
+  background: rgba(29, 185, 84, 0.12);
+  color: var(--green);
+}
+.status-pill.absent {
+  background: rgba(229, 57, 53, 0.1);
+  color: var(--red);
+}
+/* The small coloured dot inside the pill */
+.status-pill .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Delete row button */
+.del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+.del-btn:hover {
+  color: var(--red);
+}
+
+/* Empty state row shown when no students have been scanned yet */
+.empty-row td {
+  text-align: center;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  padding: 32px 12px;
+}
+
+
+/* -------------------------------------------------------------
+   10. TOAST NOTIFICATION
+       Fixed bar that slides up from the bottom for 2.4 s.
+------------------------------------------------------------- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px); /* starts off-screen */
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50px;
+  padding: 10px 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  z-index: 99;
+  white-space: nowrap;
+}
+/* JS adds this class to slide the toast into view */
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+/* Green variant used for success messages */
+.toast.green {
+  background: var(--green);
+}
+
+
+/* -------------------------------------------------------------
+   11. ANIMATIONS
+       Row pop-in used when a new student is added to the table.
+------------------------------------------------------------- */
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.new-row {
+  animation: rowIn 0.2s ease both;
+}

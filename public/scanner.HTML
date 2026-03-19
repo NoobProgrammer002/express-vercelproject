@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>AttendX</title>
+
+  <!-- Google Fonts: Syne (headings/buttons) + DM Mono (labels/data) -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Our stylesheet -->
+  <link rel="stylesheet" href="scanner.CSS" />
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+</head>
+
+<body>
+
+  <!-- =====================================================
+       DYNAMIC BACKGROUND
+       Three blurred colour orbs that slowly drift around,
+       a faint scrolling grid, and a noise grain overlay.
+       All purely decorative — pointer-events are disabled.
+  ====================================================== -->
+  <div class="bg-canvas">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-noise"></div>
+  </div>
+
+
+  <!-- =====================================================
+       MAIN APP WRAPPER
+       Max-width 420px, centred, sits above the background.
+  ====================================================== -->
+  <div class="app">
+
+
+    <!-- -------------------------------------------------
+         HEADER
+         Logo on the left, today's date on the right.
+    -------------------------------------------------- -->
+   <header>
+    <div class="logo">Attend<span>X</span></div>
+    <div style="display:flex; align-items:center; gap:10px;">
+    <div class="date-chip" id="dateChip">—</div>
+    <button id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+
+    <!-- -------------------------------------------------
+         SCANNER CARD
+         Dark card containing the camera viewfinder and
+         the Start / Stop camera buttons.
+    -------------------------------------------------- -->
+    <div class="scanner-card">
+
+      <!-- Top row: section label + live/idle status dot -->
+      <div class="scanner-label-row">
+        <div class="scanner-label">QR Scanner</div>
+        <div class="cam-status" id="camStatus">
+          <span class="cam-dot"></span>
+          <span id="camStatusText">Idle</span>
+        </div>
+      </div>
+
+      <!-- Viewfinder box -->
+      <div class="viewfinder">
+
+        <!-- Subtle dot grid rendered purely in CSS -->
+        <div class="vf-grid"></div>
+
+        <!-- Live camera feed (hidden until camera starts) -->
+        <video id="cameraFeed" autoplay playsinline muted></video>
+
+        <!-- Green corner brackets drawn with CSS borders -->
+        <div class="vf-corner tl"></div>
+        <div class="vf-corner tr"></div>
+        <div class="vf-corner bl"></div>
+        <div class="vf-corner br"></div>
+
+        <!-- Animated horizontal scan line -->
+        <div class="vf-line" id="scanLine"></div>
+
+        <!-- Idle placeholder shown before camera starts -->
+        <div class="vf-hint" id="vfHint">
+          <!-- QR code icon (inline SVG so no extra file needed) -->
+          <svg width="52" height="52" viewBox="0 0 64 64" fill="none" stroke="white" stroke-width="3">
+            <rect x="6"  y="6"  width="20" height="20" rx="2"/>
+            <rect x="11" y="11" width="10" height="10" rx="1" fill="white" stroke="none"/>
+            <rect x="38" y="6"  width="20" height="20" rx="2"/>
+            <rect x="43" y="11" width="10" height="10" rx="1" fill="white" stroke="none"/>
+            <rect x="6"  y="38" width="20" height="20" rx="2"/>
+            <rect x="11" y="43" width="10" height="10" rx="1" fill="white" stroke="none"/>
+            <path d="M38 38h4v4h-4zM46 38h4v4h-4zM38 46h4v4h-4zM50 46h8M54 38v8"/>
+          </svg>
+          <span>Tap Start Camera to begin</span>
+        </div>
+
+        <!-- Green flash overlay — briefly shown on a successful scan -->
+        <div class="vf-flash" id="flash"></div>
+
+      </div><!-- /viewfinder -->
+
+      <!-- Button row: Start and Stop sit side by side -->
+      <div class="btn-row">
+
+        <!-- START button: visible by default -->
+        <button class="scan-btn" id="startBtn" onclick="startCamera()">
+          <!-- QR icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="3"  y="3"  width="7" height="7" rx="1"/>
+            <rect x="14" y="3"  width="7" height="7" rx="1"/>
+            <rect x="3"  y="14" width="7" height="7" rx="1"/>
+            <path d="M14 14h2v2h-2zM18 14h3M14 18h3M20 18v3M17 20h3"/>
+          </svg>
+          Start Camera
+        </button>
+
+        <!-- STOP button: hidden by default, shown when camera is live -->
+        <button class="stop-btn" id="stopBtn" onclick="stopCamera()">
+          <!-- Square (stop) icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+          </svg>
+          Stop
+        </button>
+
+      </div><!-- /btn-row -->
+
+    </div><!-- /scanner-card -->
+
+
+    <!-- -------------------------------------------------
+         ATTENDANCE SHEET SECTION
+         Section header with title + download button,
+         followed by the table of scanned students.
+    -------------------------------------------------- -->
+    <div class="section-head">
+      <div class="section-title">Attendance Sheet</div>
+
+      <!-- Downloads the table as a CSV file that opens in Excel -->
+      <button class="download-btn" onclick="downloadExcel()">
+        <!-- Download arrow icon -->
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download Excel
+      </button>
+    </div>
+
+    <!-- Attendance table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student Name</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th></th><!-- Delete column (no heading) -->
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Rows are injected here by JavaScript (renderTable) -->
+          <tr class="empty-row">
+            <td colspan="5">No scans yet — tap Start Camera</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+
+  </div><!-- /app -->
+
+
+  <!-- =====================================================
+       TOAST NOTIFICATION
+       Appears at the bottom of the screen for 2.4 s.
+       Controlled entirely by JavaScript (showToast).
+  ====================================================== -->
+  <div class="toast" id="toast"></div>
+
+
+  <!-- Our JavaScript -->
+  <script src="scanner.JS"></script>
+
+</body>
+</html>

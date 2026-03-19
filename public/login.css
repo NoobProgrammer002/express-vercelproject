@@ -1,0 +1,242 @@
+/* =============================================================
+   login.css  —  AttendX Login Page
+   Matches the scanner page theme exactly.
+   Mobile-first approach.
+   ============================================================= */
+
+
+/* -------------------------------------------------------------
+   1. RESET & BASE
+------------------------------------------------------------- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Background colour matches scanner page --bg variable */
+body {
+  min-height: 100vh;
+  background: #f5f4f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Syne', sans-serif;
+  overflow-x: hidden;
+  padding: 24px 18px;
+}
+
+
+/* -------------------------------------------------------------
+   2. DYNAMIC BACKGROUND
+      Same three drifting orbs as the scanner page.
+------------------------------------------------------------- */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.5;
+}
+
+.orb-1 {
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, #b8f0d0 0%, transparent 70%);
+  top: -120px;
+  left: -100px;
+  animation: drift1 16s ease-in-out infinite alternate;
+}
+
+.orb-2 {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, #cce4ff 0%, transparent 70%);
+  bottom: 60px;
+  right: -80px;
+  animation: drift2 20s ease-in-out infinite alternate;
+}
+
+.orb-3 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, #fde0cc 0%, transparent 70%);
+  top: 42%;
+  left: 52%;
+  animation: drift3 24s ease-in-out infinite alternate;
+}
+
+@keyframes drift1 {
+  from { transform: translate(0, 0)       scale(1);    }
+  to   { transform: translate(70px, 90px) scale(1.12); }
+}
+@keyframes drift2 {
+  from { transform: translate(0, 0)          scale(1);    }
+  to   { transform: translate(-55px, -65px)  scale(1.08); }
+}
+@keyframes drift3 {
+  from { transform: translate(0, 0)        scale(1);  }
+  to   { transform: translate(-45px, 55px) scale(0.9); }
+}
+
+/* Faint scrolling dot grid */
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+  background-size: 52px 52px;
+  animation: gridShift 28s linear infinite;
+}
+@keyframes gridShift {
+  from { background-position: 0 0; }
+  to   { background-position: 52px 52px; }
+}
+
+
+/* -------------------------------------------------------------
+   3. LOGIN CARD  (.main_parent — your original class)
+      Mobile-first: full width on small screens,
+      capped at 400px on larger screens.
+------------------------------------------------------------- */
+.main_parent {
+  position: relative;
+  z-index: 1;                  /* sits above the background */
+  width: 100%;
+  max-width: 400px;            /* matches your original width */
+  background: #ffffff;
+  border: 1px solid #e2e0d8;
+  border-radius: 20px;
+  padding: 40px 28px 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;                      /* spacing handled per-element below */
+
+  /* subtle shadow to lift card off the background */
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.07);
+}
+
+
+/* -------------------------------------------------------------
+   4. LOGO
+      "AttendX" branding at the top of the card.
+------------------------------------------------------------- */
+.logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #1a1a1a;
+  margin-bottom: 6px;
+}
+
+.logo span {
+  color: #1db954; /* green accent — same as scanner page */
+}
+
+
+/* -------------------------------------------------------------
+   5. HEADING  (#text — your original ID)
+------------------------------------------------------------- */
+h2#text {
+  background: transparent;
+  font-family: 'Syne', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-align: center;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+}
+
+
+/* -------------------------------------------------------------
+   6. FORM  (#form — your original ID)
+------------------------------------------------------------- */
+form#form {
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+
+/* -------------------------------------------------------------
+   7. INPUTS  (#username, #password — your original IDs)
+------------------------------------------------------------- */
+input#username,
+input#password {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid #e2e0d8;
+  border-radius: 12px;
+  background: #f5f4f0;
+  color: #1a1a1a;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+input#username::placeholder,
+input#password::placeholder {
+  color: #888880;
+}
+
+/* Green border on focus — matches scanner page accent */
+input#username:focus,
+input#password:focus {
+  border-color: #1db954;
+  background: #ffffff;
+}
+
+
+/* -------------------------------------------------------------
+   8. SUBMIT BUTTON  (#submit — your original ID)
+------------------------------------------------------------- */
+button#submit {
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  background: #1a1a1a;         /* matches scanner page --accent */
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+button#submit:hover {
+  opacity: 0.88;
+}
+
+button#submit:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+
+/* -------------------------------------------------------------
+   9. LARGER SCREENS
+      On screens wider than 430px the card just centres itself —
+      no other changes needed since we already have max-width.
+------------------------------------------------------------- */
+@media (min-width: 430px) {
+  body {
+    padding: 0;
+  }
+}
